@@ -1,9 +1,10 @@
-import 'package:environment_variables/model/enviroment.dart';
+import 'package:environment_variables/services/http_util.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+import 'model/job_model.dart';
 
 Future<void> main() async {
-  await dotenv.load(fileName: Environment.fileName);
+
   runApp(const MyApp());
 }
 
@@ -18,7 +19,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Loading Env Variables'),
+      home: const MyHomePage(title: 'Dart backend'),
     );
   }
 }
@@ -34,11 +35,19 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+  JobModel? job;
 
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
+  @override
+  void didChangeDependencies() {
+    myState();
+    Future.delayed(const Duration(seconds: 1)).then((value) => setState(() {}));
+
+    // TODO: implement didChangeDependencies
+    super.didChangeDependencies();
+  }
+
+  myState() async {
+    job = await HttpUtil().fetchData();
   }
 
   @override
@@ -48,24 +57,20 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
       ),
-      body: Center(
+      body: job==null?Container():Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-             Text(
-              "This is the api base url  : ${Environment.apiBaseUrl}",
-            ),
             Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+              job?.title ?? "Loading...", // Use null-ish coalescing operator
             ),
+             const SizedBox(height: 5,),
+             Text(
+               job?.description ?? "Loading...", // Use null-ish coalescing operator
+            ),
+
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
       ),
     );
   }
